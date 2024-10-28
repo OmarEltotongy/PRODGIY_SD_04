@@ -1,7 +1,7 @@
 /*
  * PRODIGY_SD_04.cpp
  *  Sudoku Solver
- *  Created on: Oct 25, 2024
+ *  Created on: Oct 28, 2024
  *  Author: Omar Eltoutongy
  */
 #include <iostream>
@@ -15,6 +15,8 @@ typedef struct
 	int row;
 	int col;
 }CellPosition;
+
+CellPosition position;
 
 CellPosition NextEmptyCell(const vector<vector<int>>& grid_numbers);
 bool NumberIsSafe(const vector<vector<int>>& grid_numbers, const CellPosition& position, const int number);
@@ -239,3 +241,33 @@ bool NumberIsSafe(const vector<vector<int>>& grid_numbers, const CellPosition& p
 		return flag_safe;
 }
 
+bool BackTracking(vector<vector<int>>& grid_numbers) {
+	// Find the next empty cell
+	position = NextEmptyCell(grid_numbers);
+
+	// Base case: If there are no more empty cells, the puzzle is solved
+	if (position.row == -1 && position.col == -1) {
+		cout << "Sudoku is Solved!\n\n";
+		return true;
+	}
+
+	// Try placing numbers 1 through 9 in the current empty cell
+	for (int num = 1; num <= 9; num++) {
+		if (NumberIsSafe(grid_numbers, position, num)) {
+			
+			// Place the number
+			grid_numbers.at(position.row).at(position.col) = num;
+
+			// Recur to check if this leads to a solution
+			if (BackTracking(grid_numbers)) {
+				return true;
+			}
+
+			// If placing num doesn't lead to a solution, reset (backtrack)
+			grid_numbers.at(position.row).at(position.col) = 0;
+		}
+	}
+
+	// If no number can be placed, trigger backtracking
+	return false;
+}
