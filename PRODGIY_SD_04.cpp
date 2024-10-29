@@ -6,20 +6,24 @@
  */
 #include <iostream>
 #include <vector>
-#include <sstream> /*Very important library*/
+#include <sstream> /*Very important library (used in alot of applications*/
+#include <chrono> // This library for timing
+
+
 using namespace std;
 
-/*Function prototypes*/
+/*Struct definition*/
 typedef struct
 {
 	int row;
 	int col;
 }CellPosition;
 
-CellPosition position;
 
+/*Function prototypes*/
 CellPosition NextEmptyCell(const vector<vector<int>>& grid_numbers);
 bool NumberIsSafe(const vector<vector<int>>& grid_numbers, const CellPosition& position, const int number);
+bool BackTracking(vector<vector<int>>& grid_numbers);
 
 
 int main()
@@ -30,13 +34,13 @@ int main()
 
 	cout << "Welcome to our Sudoku solver\n\n";
 
-	// 2D vector to store the entire Sudoku grid
+	//To store the entire Sudoku grid, 2D vectro is required
 	vector<vector<int>> grid_numbers(grid_size, vector<int>(grid_size));
 
 	cout << "Please fill the grid with numbers to solve it\n"
 		<< "Enter each row with numbers separated by spaces (use 0 for empty cells):\n";
 
-	// Loop through each row of the grid
+	// Loop through each row of the grid from 1 to 9
 	for (int i = 0; i < grid_size; i++)
 	{
 		bool valid_row = false;
@@ -76,7 +80,7 @@ int main()
 		}
 	}
 
-	cout << "\nThe current grid:\n";
+	cout << "\n\nThe current grid:\n";
 	for (const auto& row : grid_numbers)
 	{
 		for (int num : row)
@@ -86,9 +90,44 @@ int main()
 		cout << endl;
 	}
 
+	// Start the time
+	auto start = chrono::high_resolution_clock::now();
 
 	/*Algorithm for solving the sudoku*/
+	if (BackTracking(grid_numbers))
+	{
+		/*End of time*/
+		auto end = chrono::high_resolution_clock::now(); 
 
+		/*Difference between the start and the end*/
+		auto duration = chrono::duration_cast<chrono::seconds>(end - start);
+
+		int hours = duration.count() / 3600;
+		int minutes = (duration.count() % 3600) / 60;
+		int seconds = duration.count() % 60;
+
+		cout << "\nThe Solved grid:\n\n";
+		for (const auto& row : grid_numbers)
+		{
+			for (int num : row)
+			{
+				cout << num << " ";
+			}
+			cout << endl;
+		}
+
+		/*Display the time taken in hours, minutes, and seconds*/ 
+
+		cout << "\nTime taken to solve the Sudoku: "
+			<< hours << " hours, "
+			<< minutes << " minutes, and "
+			<< seconds << " seconds.\n";
+	}
+	else
+	{
+		cout << "This sudoku cannot be solved!\n\n";
+	}
+	
 	return 0;
 }
 
@@ -109,165 +148,156 @@ CellPosition NextEmptyCell(const vector<vector<int>>& grid_numbers)
 
 bool NumberIsSafe(const vector<vector<int>>& grid_numbers, const CellPosition& position, const int number)
 {
-	bool flag_safe = true;
-
-	/*To check every row with constant column*/
-	for (int i = 0; i < grid_numbers.size(); i++)
-	{
-		if (grid_numbers.at(i).at(position.col) == number)
-		{
-			flag_safe = false;
-			return flag_safe;
+	// Check the row
+	for (int col = 0; col < 9; col++) {
+		if (grid_numbers[position.row][col] == number) {
+			return false; // Found the number in the row
 		}
 	}
 
-	/*To check every column with constant row*/
-	for (int j = 0; j < grid_numbers.size(); j++)
-	{
-		if (grid_numbers.at(position.row).at(j) == number)
-		{
-			flag_safe = false;
-			return flag_safe;
+	// Check the column
+	for (int row = 0; row < 9; row++) {
+		if (grid_numbers[row][position.col] == number) {
+			return false; // Found the number in the column
 		}
 	}
 
-	/*To check the number with the 3*3 grid itself*/
+	// Check the 3x3 box
+	/*First try: */
+		/* To check the number with the 3*3 grid itself */
 
-	CellPosition start_check{ 1,1 };
-	int flag_grid = 1;
+	//CellPosition start_check{ 1,1 };
+	//int flag_grid = 1;
 
-		for (int i = 0; i < grid_numbers.size(); i++)
-		{
-			if (flag_grid == 0)
-				break;
+	//for (int i = 0; i < grid_numbers.size(); i++)
+	//{
+	//	if (flag_grid == 0)
+	//		break;
 
-			for (int j = 0; j < grid_numbers.size(); j++)
-			{
-				/*First 3 rows*/
-				if ((i / 3) <= 1)
-				{
-					/*First 3 columns*/
-					if ((j / 3) <= 1)
-					{
-						start_check.row = 1;
-						start_check.col = 1;
-						flag_grid = 0;
-					}
+	//	for (int j = 0; j < grid_numbers.size(); j++)
+	//	{
+	//		// First 3 rows
+	//		if ((i / 3) <= 1)
+	//		{
+	//			// First 3 columns
+	//			if ((j / 3) <= 1)
+	//			{
+	//				start_check.row = 1;
+	//				start_check.col = 1;
+	//				flag_grid = 0;
+	//			}
 
-					/*Second 3 columns*/
-					else if ((j / 3) <= 2)
-					{
-						start_check.row = 1;
-						start_check.col = 4;
-						flag_grid = 0;
-					}
+	//			// Second 3 columns
+	//			else if ((j / 3) <= 2)
+	//			{
+	//				start_check.row = 1;
+	//				start_check.col = 4;
+	//				flag_grid = 0;
+	//			}
 
-					/*Third 3 columns*/
-					else if ((j / 3) <= 3)
-					{
-						start_check.row = 1;
-						start_check.col = 7;
-						flag_grid = 0;
-					}
+	//			// Third 3 columns
+	//			else if ((j / 3) <= 3)
+	//			{
+	//				start_check.row = 1;
+	//				start_check.col = 7;
+	//				flag_grid = 0;
+	//			}
+	//		}
+	//		else if ((i / 3) <= 2)
+	//		{
+	//			// First 3 columns
+	//			if ((j / 3) <= 1)
+	//			{
+	//				start_check.row = 4;
+	//				start_check.col = 1;
+	//				flag_grid = 0;
+	//			}
 
-				}
-				else if ((i / 3) <= 2)
-				{
+	//			// Second 3 columns
+	//			else if ((j / 3) <= 2)
+	//			{
+	//				start_check.row = 4;
+	//				start_check.col = 4;
+	//				flag_grid = 0;
+	//			}
 
-					/*First 3 columns*/
-					if ((j / 3) <= 1)
-					{
-						start_check.row = 4;
-						start_check.col = 1;
-						flag_grid = 0;
-					}
+	//			// Third 3 columns
+	//			else if ((j / 3) <= 3)
+	//			{
+	//				start_check.row = 4;
+	//				start_check.col = 7;
+	//				flag_grid = 0;
+	//			}
+	//		}
+	//		else if ((i / 3) <= 3)
+	//		{
+	//			// First 3 columns
+	//			if ((j / 3) <= 1)
+	//			{
+	//				start_check.row = 7;
+	//				start_check.col = 1;
+	//				flag_grid = 0;
+	//			}
 
-					/*Second 3 columns*/
-					else if ((j / 3) <= 2)
-					{
-						start_check.row = 4;
-						start_check.col = 4;
-						flag_grid = 0;
-					}
+	//			// Second 3 columns
+	//			else if ((j / 3) <= 2)
+	//			{
+	//				start_check.row = 7;
+	//				start_check.col = 4;
+	//				flag_grid = 0;
+	//			}
 
-					/*Third 3 columns*/
-					else if ((j / 3) <= 3)
-					{
-						start_check.row = 4;
-						start_check.col = 7;
-						flag_grid = 0;
-					}
-				}
-				else if ((i / 3) <= 3)
-				{
-					/*First 3 columns*/
-					if ((j / 3) <= 1)
-					{
-						start_check.row = 7;
-						start_check.col = 1;
-						flag_grid = 0;
-					}
+	//			// Third 3 columns
+	//			else if ((j / 3) <= 3)
+	//			{
+	//				start_check.row = 7;
+	//				start_check.col = 7;
+	//				flag_grid = 0;
+	//			}
+	//		}
+	//	}
+	//}
 
-					/*Second 3 columns*/
-					else if ((j / 3) <= 2)
-					{
-						start_check.row = 7;
-						start_check.col = 4;
-						flag_grid = 0;
-					}
-
-					/*Third 3 columns*/
-					else if ((j / 3) <= 3)
-					{
-						start_check.row = 7;
-						start_check.col = 7;
-						flag_grid = 0;
-					}
-				}
+	/*Second try from ChatGPT: integer Division */
+	int boxRowStart = (position.row / 3) * 3;
+	int boxColStart = (position.col / 3) * 3;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			if (grid_numbers[boxRowStart + i][boxColStart + j] == number) {
+				return false; // Found the number in the 3x3 box
 			}
 		}
+	}
 
-		
-		for (int i = 0; i < 3; i++)
-		{
-			for (int j = 0; j < 3; j++)
-			{
-				if (grid_numbers[start_check.row + i][start_check.col + j] == number) {
-					flag_safe = false;
-					return flag_safe;
-				}
-			}
-		}
-		return flag_safe;
+	return true;
 }
 
 bool BackTracking(vector<vector<int>>& grid_numbers) {
+	
 	// Find the next empty cell
-	position = NextEmptyCell(grid_numbers);
+	CellPosition position= NextEmptyCell(grid_numbers);
 
-	// Base case: If there are no more empty cells, the puzzle is solved
+	// Base case
 	if (position.row == -1 && position.col == -1) {
-		cout << "Sudoku is Solved!\n\n";
+		cout << "\nSudoku is Solved!\n\n";
 		return true;
 	}
 
-	// Try placing numbers 1 through 9 in the current empty cell
+	// Place numbers from 1 to 9 in the current empty cell
 	for (int num = 1; num <= 9; num++) {
 		if (NumberIsSafe(grid_numbers, position, num)) {
-			
-			// Place the number
+
 			grid_numbers.at(position.row).at(position.col) = num;
 
-			// Recur to check if this leads to a solution
 			if (BackTracking(grid_numbers)) {
 				return true;
 			}
 
-			// If placing num doesn't lead to a solution, reset (backtrack)
 			grid_numbers.at(position.row).at(position.col) = 0;
+			cout << "Backtracking from position (" << position.row + 1 << "," << position.col + 1 << ")\n";
 		}
 	}
 
-	// If no number can be placed, trigger backtracking
+	// If no number can be placed, backtracking again
 	return false;
 }
